@@ -76,6 +76,10 @@ def main():
     run_command(f'dotnet publish ./csproj -c Release -r {rid} --self-contained')
 
     publish_dir = f'./csproj/bin/Release/net8.0/{rid}/publish'
+    if not os.path.isdir(publish_dir):
+        raise SystemExit(f"Publish directory missing: {publish_dir}")
+
+    os.makedirs(dist_dir, exist_ok=True)
     compress_files(publish_dir, f"{dist_dir}/{rid}-{version}.tar.gz", arcname=rid)
 
     # Clean build artifacts to keep tree small
