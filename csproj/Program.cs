@@ -36,6 +36,7 @@ class Program
                 AuthorForRevisions = authorTag,
                 DetailThreshold = 0,
                 TrackFormattingChanges = true,
+                LogCallback = Console.WriteLine,
             };
 
             var comparisonResults = WmlComparer.Compare(originalDocument, modifiedDocument, comparisonSettings);
