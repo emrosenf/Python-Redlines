@@ -100,9 +100,24 @@ class XmlPowerToolsEngine(object):
         try:
 
             target_path = tempfile.NamedTemporaryFile(delete=False).name
-            original_path = self._write_to_temp_file(original) if isinstance(original, bytes) else original
-            modified_path = self._write_to_temp_file(modified) if isinstance(modified, bytes) else modified
-            temp_files.extend([target_path, original_path, modified_path])
+            temp_files.append(target_path)
+
+            created_original = False
+            created_modified = False
+
+            if isinstance(original, bytes):
+                original_path = self._write_to_temp_file(original)
+                temp_files.append(original_path)
+                created_original = True
+            else:
+                original_path = original
+
+            if isinstance(modified, bytes):
+                modified_path = self._write_to_temp_file(modified)
+                temp_files.append(modified_path)
+                created_modified = True
+            else:
+                modified_path = modified
 
             command = [self.extracted_binaries_path, author_tag, original_path, modified_path, target_path]
 
