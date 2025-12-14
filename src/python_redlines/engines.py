@@ -149,3 +149,47 @@ class XmlPowerToolsEngine(object):
         temp_file.write(data)
         temp_file.close()
         return temp_file.name
+
+    def run_spreadsheet_compare(self, author_tag: str, original: Union[bytes, Path], modified: Union[bytes, Path]) \
+            -> Tuple[bytes, Optional[str], Optional[str]]:
+        """
+        Runs the spreadsheet comparison. The 'original' and 'modified' arguments can be either bytes or file paths.
+        Returns the marked workbook output as bytes.
+        """
+        temp_files = []
+        try:
+
+            target_path = tempfile.NamedTemporaryFile(delete=False).name
+            temp_files.append(target_path)
+
+            created_original = False
+            created_modified = False
+
+            if isinstance(original, bytes):
+                original_path = self._write_to_temp_file(original)
+                temp_files.append(original_path)
+                created_original = True
+            else:
+                original_path = original
+
+            if isinstance(modified, bytes):
+                modified_path = self._write_to_temp_file(modified)
+                temp_files.append(modified_path)
+                created_modified = True
+            else:
+                modified_path = modified
+
+            command = [self.extracted_binaries_path, "--sheets", author_tag, original_path, modified_path, target_path]
+
+            # Capture stdout and stderr
+            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+            stdout_output = result.stdout if isinstance(result.stdout, str) and len(result.stdout) > 0 else None
+            stderr_output = result.stderr if isinstance(result.stderr, str) and len(result.stderr) > 0 else None
+
+            comparison_output = Path(target_path).read_bytes()
+
+            return comparison_output, stdout_output, stderr_output
+
+        finally:
+            self._cleanup_temp_files(temp_files)
