@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parent
 SRC_DIR = ROOT / "src" / "python_redlines"
 DIST_DIR = SRC_DIR / "dist"
 CSPROJ_DIR = ROOT / "csproj"
-FRAMEWORK = "net8.0"
+FRAMEWORK = "net10.0"
 DEFAULT_RID = "linux-arm64"
 
 
