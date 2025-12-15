@@ -12,6 +12,10 @@ class Program
         {
             CompareSpreadsheets(args);
         }
+        else if (args.Length > 0 && args[0] == "--presentations")
+        {
+            ComparePresentations(args);
+        }
         else
         {
             CompareDocuments(args);
@@ -110,6 +114,59 @@ class Program
             Console.WriteLine($"Spreadsheet comparison complete");
 
             File.WriteAllBytes(outputFilePath, markedWorkbook.DocumentByteArray);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine("Detailed Stack Trace:");
+            Console.WriteLine(ex.StackTrace);
+        }
+    }
+
+    static void ComparePresentations(string[] args)
+    {
+        if (args.Length != 5)
+        {
+            Console.WriteLine("Usage: redlines --presentations <author_tag> <original_path.pptx> <modified_path.pptx> <redline_path.pptx>");
+            return;
+        }
+
+        string authorTag = args[1];
+        string originalFilePath = args[2];
+        string modifiedFilePath = args[3];
+        string outputFilePath = args[4];
+
+        if (!File.Exists(originalFilePath) || !File.Exists(modifiedFilePath))
+        {
+            Console.WriteLine("Error: One or both files do not exist.");
+            return;
+        }
+
+        try
+        {
+            var originalBytes = File.ReadAllBytes(originalFilePath);
+            var modifiedBytes = File.ReadAllBytes(modifiedFilePath);
+            var originalDocument = new PmlDocument(originalFilePath, originalBytes);
+            var modifiedDocument = new PmlDocument(modifiedFilePath, modifiedBytes);
+
+            var comparisonSettings = new PmlComparerSettings
+            {
+                AuthorForChanges = authorTag,
+                CompareTextContent = true,
+                CompareShapeStructure = true,
+                CompareSlideStructure = true,
+                CompareImageContent = true,
+                AddSummarySlide = true,
+                AddNotesAnnotations = true,
+                LogCallback = Console.WriteLine,
+            };
+
+            var markedPresentation = PmlComparer.ProduceMarkedPresentation(originalDocument, modifiedDocument, comparisonSettings);
+
+            // Output results
+            Console.WriteLine($"Presentation comparison complete");
+
+            File.WriteAllBytes(outputFilePath, markedPresentation.DocumentByteArray);
         }
         catch (Exception ex)
         {
